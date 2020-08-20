@@ -167,7 +167,7 @@ object CustomOperator extends App {
           }
 
           override def onUpstreamFailure(ex: Throwable): Unit = {
-            promise.success(counter)
+            promise.failure(ex)
             super.onUpstreamFailure(ex)
           }
         })
@@ -181,7 +181,7 @@ object CustomOperator extends App {
   val counterFlow = Flow.fromGraph(new CounterFlow[Int])
   Source(1 to 10)
     .viaMat(counterFlow)(Keep.right)
-    .to(Sink.foreach(println))
+    .to(Sink.foreach(x => if(x==7) throw new RuntimeException("gotcha sink") else println(x)))
     .run()
     .onComplete{
       case Success(value) => println(s"Total count: $value")
